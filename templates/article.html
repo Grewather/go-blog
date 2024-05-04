@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark" />
+    <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    />
+    <title>{{.BlogTitle}} - article </title>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <nav>
+        <ul>
+            <li><strong>{{.BlogTitle}}</strong></li>
+        </ul>
+        <ul>
+            <li><a href="/" class="contrast">Blog</a></li>
+            <li><a href="/about" class="contrast">About</a></li>
+    </nav>
+    <main>
+        <h3>{{ .Title }}</h3>
+
+        <article>
+            <md-block>
+                {{ .Content }}
+            </md-block>
+        </article>
+
+
+    </main>
+    <footer>
+        <small
+        >Built with <a href="https://picocss.com">Pico</a> •
+            <a href="https://go.dev/>">Go</a> •
+            <a href="https://github.com/picocss/examples/blob/master/v2-html-classless/index.html"
+            >Source code</a
+            > <br />
+            Powered By <a href="https://www.alpinelinux.org/">Alpine Linux</a>
+        </small
+        >
+    </footer>
+</div>
+<script type="module" src="https://md-block.verou.me/md-block.js"></script>
+</body>
+</html>

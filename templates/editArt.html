@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+    <title>{{.}} - admin page</title>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <nav>
+        <ul>
+            <li><strong>{{.}}</strong></li>
+        </ul>
+        <ul>
+            <li><a href="/" class="contrast">Blog</a></li>
+            <li><a href="/about" class="contrast">About</a></li>
+        </ul>
+    </nav>
+    <main>
+        <h4>Enter Article</h4>
+        <form id="articleForm">
+            <input type="text" name="Title" placeholder="Title" aria-label="Title" />
+            <input type="text" name="Description" placeholder="Description" aria-label="Description"  />
+            <textarea id="articleContent" name="Article" placeholder="Enter Article here..." aria-label="Article"></textarea>
+        </form>
+        <button id="submitArticle">Edit</button>
+
+        <h4>Preview</h4>
+        <h5 class="title"></h5>
+        <article id="previewContent">
+        </article>
+    </main>
+    <footer>
+        <dialog id="codeDialog">
+            <article>
+                <header>
+                    <button aria-label="Close" id="close" rel="prev"></button>
+                    <p>
+                        <strong> Enter the code to edit this Article 📚</strong>
+                    </p>
+                </header>
+                <p>
+                    To edit this Article you need to enter the code.
+                </p>
+                <form id="codeForm">
+                    <input type="text" name="code" placeholder="Code" aria-label="Code" />
+                    <button id="submitCode">Submit</button>
+                </form>
+            </article>
+        </dialog>
+        <small>Built with <a href="https://picocss.com">Pico</a> • <a href="https://go.dev/">Go</a> • <a href="https://github.com/picocss/examples/blob/master/v2-html-classless/index.html">Source code</a> <br /> Powered By <a href="https://www.alpinelinux.org/">Alpine Linux</a></small>
+    </footer>
+</div>
+<script type="module" src="https://md-block.verou.me/md-block.js"></script>
+<script>
+    const articleContent = document.querySelector('#articleContent');
+    const previewContent = document.querySelector('#previewContent');
+    const submitArticleButton = document.querySelector('#submitArticle');
+    const codeDialog = document.querySelector('#codeDialog');
+    const codeForm = document.querySelector('#codeForm');
+    const submitCodeButton = document.querySelector('#submitCode');
+    const closeButton = document.querySelector('#close');
+    articleContent.addEventListener('input', function() {
+        previewContent.innerHTML = `<md-block>${articleContent.value}</md-block>`;
+    });
+
+
+
+    closeButton.addEventListener('click', function() {
+        codeDialog.close();
+    });
+
+    submitArticleButton.addEventListener('click', function() {
+        let title = document.querySelector('input[name="Title"]').value;
+        let description = document.querySelector('input[name="Description"]').value;
+        let content = articleContent.value;
+        if (!title || !description || !content) {
+            alert("Please fill all fields");
+            return;
+        }
+        codeDialog.showModal();
+    });
+
+    submitCodeButton.addEventListener('click', function(event) {
+        event.preventDefault();
+        const code = codeForm.elements['code'].value;
+        const formData = new FormData(document.getElementById('articleForm'));
+        formData.append('code', code);
+        const url = window.location.href;
+        const id = url.split('/').pop();
+        formData.append('id', id);
+
+        fetch('/api/v1/edit', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert('Article edited successfully');
+                } else {
+                    alert('Failed to edit article');
+                }
+            })
+            .catch(error => {
+                alert('Failed to edit article');
+            });
+
+        codeDialog.close();
+    });
+
+    window.onload = () => {
+        const url = window.location.href;
+        const id = url.split('/').pop();
+        fetch(`/api/v1/article/${id}`)
+            .then(response => response.json())
+            .then(article => {
+                document.querySelector('input[name="Title"]').value = article.name;
+                document.querySelector('input[name="Description"]').value = article.description;
+                document.querySelector('#articleContent').value = article.content;
+                document.querySelector('.title').textContent = article.title;
+                document.querySelector('#previewContent').innerHTML = article.content;
+            });
+    };
+</script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark" />
+    <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    />
+    <title>{{.}} - admin page</title>
+    <style>
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 5px;
+        }
+        main article {
+            display: flex;
+
+        }
+        button{
+            margin:10px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <nav>
+        <ul>
+            <li><strong> {{.}} </strong></li>
+        </ul>
+        <ul>
+            <li><a href="/" class="contrast">Blog</a></li>
+            <li><a href="/about" class="contrast">About</a></li>
+            <li><a href="/admin/add" class="contrast">Add Article</a></li>
+
+        </ul>
+    </nav>
+    <main id="articles-container">
+    </main>
+
+    <footer>
+        <dialog id="codeDialog">
+            <article>
+                <header>
+                    <button aria-label="Close" id="close" rel="prev"></button>
+                    <p>
+                        <strong> Enter the code to delete this Article 🗑</strong>
+                    </p>
+                </header>
+                <p>
+                    To delete this Article you need to enter the code.
+                </p>
+                <form id="codeForm">
+                    <input type="text" name="code" placeholder="Code" aria-label="Code" />
+                    <button id="submitCode">Submit</button>
+                </form>
+            </article>
+        </dialog>
+        <small>Built with <a href="https://picocss.com">Pico</a> • <a href="https://go.dev/">Go</a> • <a href="https://github.com/picocss/examples/blob/master/v2-html-classless/index.html">Source code</a> <br /> Powered By <a href="https://www.alpinelinux.org/">Alpine Linux</a></small>
+    </footer>
+</div>
+
+<script>
+    const closeButton = document.querySelector("#close");
+    const codeDialog = document.querySelector("#codeDialog");
+    const submitCodeButton = document.querySelector('#submitCode');
+
+    closeButton.addEventListener('click', function() {
+        codeDialog.close();
+    });
+    fetch('/api/v1/article/all')
+        .then(response => response.json())
+        .then(articles => {
+            articles.sort((a, b) => b.id - a.id);
+
+            const articlesContainer = document.getElementById('articles-container');
+            articles.forEach(article => {
+                const articleDiv = document.createElement('div');
+                articleDiv.innerHTML = `
+                <article>
+                    <div  role="group">
+                        <hgroup>
+                            <h6>${article.title}</h6>
+                            <p>${article.description}</p>
+
+                        </hgroup>
+                    </div>
+
+                    <button onclick="window.location.href='/admin/edit/${article.id}'" class="secondary">edit</button>
+                    <button class="contrast" onclick="showModal(${article.id})">
+                    <?xml version="1.0" encoding="utf-8"?><svg  style="width:20px; height:20px;" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="109.484px" height="122.88px" viewBox="0 0 109.484 122.88" enable-background="new 0 0 109.484 122.88" xml:space="preserve"><g><path fill-rule="evenodd" clip-rule="evenodd" d="M2.347,9.633h38.297V3.76c0-2.068,1.689-3.76,3.76-3.76h21.144 c2.07,0,3.76,1.691,3.76,3.76v5.874h37.83c1.293,0,2.347,1.057,2.347,2.349v11.514H0V11.982C0,10.69,1.055,9.633,2.347,9.633 L2.347,9.633z M8.69,29.605h92.921c1.937,0,3.696,1.599,3.521,3.524l-7.864,86.229c-0.174,1.926-1.59,3.521-3.523,3.521h-77.3 c-1.934,0-3.352-1.592-3.524-3.521L5.166,33.129C4.994,31.197,6.751,29.605,8.69,29.605L8.69,29.605z M69.077,42.998h9.866v65.314 h-9.866V42.998L69.077,42.998z M30.072,42.998h9.867v65.314h-9.867V42.998L30.072,42.998z M49.572,42.998h9.869v65.314h-9.869 V42.998L49.572,42.998z"/></g></svg>
+                    </button>
+
+                </article>
+            `;
+                articlesContainer.appendChild(articleDiv);
+            });
+        })
+        .catch(error => console.error('Error fetching articles:', error));
+            function showModal(id) {
+                codeDialog.showModal();
+                submitCodeButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const codeInput = document.querySelector('input[name="code"]');
+                    const code = codeInput.value.trim();
+                    deleteArticle(id, code);
+                });
+            }
+
+    function deleteArticle(id, code) {
+        const formData = new FormData();
+        formData.append('id', id);
+        formData.append('code', code);
+
+        fetch(`/api/v1/delete`, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                console.log("Response from server:", response);
+                if (response.status === 200) {
+                    window.location.reload();
+                } else {
+                    alert("Failed to delete article");
+                }
+                return response.json();
+            })
+    }
+
+
+</script>
+
+</body>
+</html>

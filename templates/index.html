@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark" />
+    <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    />
+    <title>{{.}}</title>
+    <style>
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 5px;
+        }
+
+        article {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <nav>
+        <ul>
+            <li><strong>{{.}}</strong></li>
+        </ul>
+        <ul>
+            <li><a href="/" class="contrast">Blog</a></li>
+            <li><a href="/about" class="contrast">About</a></li>
+        </ul>
+    </nav>
+    <main id="articles-container">
+    </main>
+    <footer>
+        <small
+        >Built with <a href="https://picocss.com">Pico</a> •
+            <a href="https://go.dev/">Go</a> •
+            <a href="https://github.com/picocss/examples/blob/master/v2-html-classless/index.html"
+            >Source code</a
+            > <br />
+            Powered By <a href="https://www.alpinelinux.org/">Alpine Linux</a>
+        </small
+        >
+    </footer>
+</div>
+
+<script>
+    fetch('/api/v1/article/all')
+        .then(response => response.json())
+        .then(articles => {
+            articles.sort((a, b) => b.id - a.id);
+
+            const articlesContainer = document.getElementById('articles-container');
+            articles.forEach(article => {
+                const articleDiv = document.createElement('div');
+                articleDiv.innerHTML = `
+                <article>
+                    <div  role="group">
+                        <hgroup>
+                            <h6>${article.title}</h6>
+                            <p>${article.description}</p>
+                        </hgroup>
+                    </div>
+
+                    <button onclick="window.location.href='/article/${article.id}'" class="secondary">visit</button>
+
+                </article>
+            `;
+                articlesContainer.appendChild(articleDiv);
+            });
+        })
+        .catch(error => console.error('Error fetching articles:', error));
+</script>
+
+</body>
+</html>
